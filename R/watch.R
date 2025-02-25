@@ -3,16 +3,15 @@
 #' Create a 'Watcher' on a filesystem location to monitor for changes in the
 #' background.
 #'
-#' Uses the optimal event-driven API for each platform: 'ReadDirectoryChangesW'
+#' Uses an optimal event-driven API for each platform: 'ReadDirectoryChangesW'
 #' on Windows, 'FSEvents' on MacOS, 'inotify' on Linux, 'kqueue' on BSD, and
 #' 'File Events Notification' on Solaris/Illumos.
 #'
-#' Note: the `latency` setting does not mean that changes are polled for at this
-#' interval, these still rely on the optimal platform-specific monitor. The
-#' implementation of 'latency' is also platform-dependent.
-#'
-#' Events are 'bubbled' such that a single change that triggers multiple event
-#' flags will cause the callback to be called only once.
+#' Note: the `latency` setting controls how often the changes are processed, and
+#' does not mean that changes are polled for at this interval. The changes are
+#' monitored in an event-driven fashion by the platform-specific monitor. Events
+#' are 'bubbled' such that a single change that triggers multiple filesystem
+#' events will cause the callback to be called only once.
 #'
 #' It is possible to set a watch on a path that does not currently exist, and it
 #' will be monitored once created.
@@ -26,16 +25,27 @@
 #' @param latency Numeric latency in seconds for events to be reported or
 #'   callbacks triggered. The default is 1s.
 #'
-#' @return A 'Watcher' R6 class object. Start and stop background monitoring
-#'   using the `$start()` and `$stop()` methods - these return a logical value
-#'   whether or not they have succeeded.
+#' @return A 'Watcher' R6 class object.
+#'
+#' @section Watcher Methods:
+#'
+#' A `Watcher` is an R6 class with the following methods:
+#'
+#' - `$start()` starts background monitoring. Returns logical `TRUE` upon
+#'   success, `FALSE` otherwise.
+#' - `$stop()` stops background monitoring. Returns logical `TRUE` upon success,
+#'   `FALSE` otherwise.
+#' - `$get_path()` returns the watched path as a character string.
+#' - `$is_running()` returns logical `TRUE` or `FALSE` depending on whether the
+#'   monitor is running.
 #'
 #' @examples
 #' w <- watcher(tempdir())
 #' w$start()
 #' w
+#' w$get_path()
 #' w$stop()
-#' w
+#' w$is_running()
 #'
 #' Sys.sleep(1)
 #'
@@ -51,38 +61,43 @@ watcher <- function(path = getwd(), callback = NULL, latency = 1) {
 Watcher <- R6Class(
   "Watcher",
   public = list(
-    path = NULL,
-    running = FALSE,
     initialize = function(path, callback, latency) {
-      if (is.null(self$path)) {
-        self$path <- path.expand(path)
+      if (is.null(private$path)) {
+        private$path <- path.expand(path)
         if (!is.null(callback) && !is.function(callback)) {
           callback <- rlang::as_function(callback)
         }
         latency <- as.double(latency)
-        private$watch <- .Call(watcher_create, self$path, callback, latency)
-        lockBinding("path", self)
+        private$watch <- .Call(watcher_create, private$path, callback, latency)
       }
       invisible(self)
     },
+    get_path = function() {
+      private$path
+    },
+    is_running = function() {
+      private$running
+    },
     start = function() {
-      res <- self$running
+      res <- private$running
       if (!res) {
-        self$running <- .Call(watcher_start_monitor, private$watch)
-        res <- !self$running
+        private$running <- .Call(watcher_start_monitor, private$watch)
+        res <- !private$running
       }
       invisible(!res)
     },
     stop = function() {
-      res <- self$running
+      res <- private$running
       if (res) {
         res <- .Call(watcher_stop_monitor, private$watch)
-        self$running <- !res
+        private$running <- !res
       }
       invisible(res)
     }
   ),
   private = list(
+    path = NULL,
+    running = FALSE,
     watch = NULL
   ),
   cloneable = FALSE,

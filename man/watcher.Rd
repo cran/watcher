@@ -19,35 +19,48 @@ causes the paths that have changed to be written to \code{stdout} instead.}
 callbacks triggered. The default is 1s.}
 }
 \value{
-A 'Watcher' R6 class object. Start and stop background monitoring
-using the \verb{$start()} and \verb{$stop()} methods - these return a logical value
-whether or not they have succeeded.
+A 'Watcher' R6 class object.
 }
 \description{
 Create a 'Watcher' on a filesystem location to monitor for changes in the
 background.
 }
 \details{
-Uses the optimal event-driven API for each platform: 'ReadDirectoryChangesW'
+Uses an optimal event-driven API for each platform: 'ReadDirectoryChangesW'
 on Windows, 'FSEvents' on MacOS, 'inotify' on Linux, 'kqueue' on BSD, and
 'File Events Notification' on Solaris/Illumos.
 
-Note: the \code{latency} setting does not mean that changes are polled for at this
-interval, these still rely on the optimal platform-specific monitor. The
-implementation of 'latency' is also platform-dependent.
-
-Events are 'bubbled' such that a single change that triggers multiple event
-flags will cause the callback to be called only once.
+Note: the \code{latency} setting controls how often the changes are processed, and
+does not mean that changes are polled for at this interval. The changes are
+monitored in an event-driven fashion by the platform-specific monitor. Events
+are 'bubbled' such that a single change that triggers multiple filesystem
+events will cause the callback to be called only once.
 
 It is possible to set a watch on a path that does not currently exist, and it
 will be monitored once created.
 }
+\section{Watcher Methods}{
+
+
+A \code{Watcher} is an R6 class with the following methods:
+\itemize{
+\item \verb{$start()} starts background monitoring. Returns logical \code{TRUE} upon
+success, \code{FALSE} otherwise.
+\item \verb{$stop()} stops background monitoring. Returns logical \code{TRUE} upon success,
+\code{FALSE} otherwise.
+\item \verb{$get_path()} returns the watched path as a character string.
+\item \verb{$is_running()} returns logical \code{TRUE} or \code{FALSE} depending on whether the
+monitor is running.
+}
+}
+
 \examples{
 w <- watcher(tempdir())
 w$start()
 w
+w$get_path()
 w$stop()
-w
+w$is_running()
 
 Sys.sleep(1)
 
