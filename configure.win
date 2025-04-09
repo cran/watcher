@@ -1,19 +1,36 @@
 # Upstream SHA of emcrisostomo/fswatch
 LIB_VER="5c443d2"
 
-# Find compiler and export flags
-CC=`"${R_HOME}/bin/R" CMD config CC`
-export CC
+gzip -dc src/fswatch-$LIB_VER.tar.gz | tar -xf -
 
-echo "Compiling 'libfswatch' from source..."
-tar -xf src/fswatch-$LIB_VER.tar.gz
-cd fswatch-$LIB_VER
-cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=../install \
-  -DBUILD_LIBS_ONLY=1 -DUSE_NLS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=1 \
-  -DCMAKE_COLOR_MAKEFILE=0 -DCMAKE_INSTALL_MESSAGE=NEVER \
-  -DCMAKE_BUILD_TYPE=Release .
-cmake --build . --target install
-cd ..
+for ARCH in x64 i386; do
+
+  if [ -e "${R_HOME}/bin/${ARCH}/R" ]; then
+    CC=`"${R_HOME}/bin/${ARCH}/R" CMD config CC`
+    CFLAGS=`"${R_HOME}/bin/${ARCH}/R" CMD config CFLAGS`
+    CPPFLAGS=`"${R_HOME}/bin/${ARCH}/R" CMD config CPPFLAGS`
+    LDFLAGS=`"${R_HOME}/bin/${ARCH}/R" CMD config LDFLAGS`
+    export CC CFLAGS CPPFLAGS LDFLAGS
+
+    echo "Compiling 'libfswatch' from source..."
+
+    cd fswatch-$LIB_VER
+    mkdir ${ARCH}
+    cd ${ARCH}
+    echo "Compiling 'libfswatch' from source for ${ARCH} ..."
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=../../install/${ARCH} \
+      -DBUILD_LIBS_ONLY=1 -DUSE_NLS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=1 \
+      -DCMAKE_COLOR_MAKEFILE=0 -DCMAKE_INSTALL_MESSAGE=NEVER \
+      -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build . --target install
+    cd ../..
+
+  else
+  echo "Note: ${ARCH} not installed, skipping ..."
+  fi
+
+done
+
 rm -rf fswatch-$LIB_VER
 
 # Success

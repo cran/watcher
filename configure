@@ -5,11 +5,14 @@ LIB_VER="5c443d2"
 
 # Initialise
 PKG_CFLAGS=""
-PKG_LIBS="-lfswatch -lpthread"
+PKG_LIBS="-lpthread"
 
 # Find compiler and export flags
 CC=`"${R_HOME}/bin/R" CMD config CC`
-export CC
+CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
+LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
+export CC CFLAGS CPPFLAGS LDFLAGS
 
 if [ -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
 export MACOSX_DEPLOYMENT_TARGET=`echo $CC | sed -En 's/.*-version-min=([0-9][0-9.]*).*/\1/p'`
@@ -34,23 +37,23 @@ if [ -z "$WATCHER_LIBS" ]; then
 if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]
 then
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
-  PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
+  PKG_LIBS="-L$LIB_DIR -lfswatch $PKG_LIBS"
   echo "Found INCLUDE_DIR $INCLUDE_DIR"
   echo "Found LIB_DIR $LIB_DIR"
 elif [ -d "/usr/local/include/libfswatch" ]
 then
   PKG_CFLAGS="-I/usr/local/include $PKG_CFLAGS"
-  PKG_LIBS="-L/usr/local/lib $PKG_LIBS"
+  PKG_LIBS="-L/usr/local/lib -lfswatch $PKG_LIBS"
   echo "Found 'libfswatch' $PKG_CFLAGS"
 elif [ -d "/usr/include/libfswatch" ]
 then
   PKG_CFLAGS="-I/usr/include $PKG_CFLAGS"
-  PKG_LIBS="-L/usr/lib $PKG_LIBS"
+  PKG_LIBS="-L/usr/lib -lfswatch $PKG_LIBS"
   echo "Found 'libfswatch' $PKG_CFLAGS"
 elif [ -d "/usr/local/opt/libfswatch" ]
 then
   PKG_CFLAGS="-I/usr/local/opt/fswatch/include $PKG_CFLAGS"
-  PKG_LIBS="-L/usr/local/opt/fswatch/lib $PKG_LIBS"
+  PKG_LIBS="-L/usr/local/opt/fswatch/lib -lfswatch $PKG_LIBS"
   echo "Found 'libfswatch' $PKG_CFLAGS"
 else
   echo "Existing 'libfswatch' not found"
@@ -74,9 +77,9 @@ if [ -z "$PKG_CFLAGS" ]; then
       exit 1
     fi
   fi
-  tar -xf src/fswatch-$LIB_VER.tar.gz
+  gzip -dc src/fswatch-$LIB_VER.tar.gz | tar -xf -
   cd fswatch-$LIB_VER
-  cmake -DCMAKE_INSTALL_PREFIX=../install \
+  cmake -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_INSTALL_LIBDIR=lib \
   -DBUILD_LIBS_ONLY=1 -DUSE_NLS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=1 \
   -DCMAKE_COLOR_MAKEFILE=0 -DCMAKE_INSTALL_MESSAGE=NEVER \
   -DCMAKE_BUILD_TYPE=Release .
@@ -84,14 +87,10 @@ if [ -z "$PKG_CFLAGS" ]; then
   cd ..
   rm -rf fswatch-$LIB_VER
 
-  if [ -d "install/lib64" ]
+  if [ -d "install/lib" ]
   then
   PKG_CFLAGS="-I../install/include $PKG_CFLAGS"
-  PKG_LIBS="-L../install/lib64 $PKG_LIBS"
-  elif [ -d "install/lib" ]
-  then
-  PKG_CFLAGS="-I../install/include $PKG_CFLAGS"
-  PKG_LIBS="-L../install/lib $PKG_LIBS"
+  PKG_LIBS="../install/lib/libfswatch.b $PKG_LIBS"
   fi
 fi
 
