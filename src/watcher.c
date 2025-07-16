@@ -14,14 +14,14 @@ static void Wprintf(const char *fmt, ...) {
 
 }
 
-static inline void watcher_error(FSW_HANDLE handle, const char *msg) {
+static void watcher_error(FSW_HANDLE handle, const char *msg) {
 
   if (handle) fsw_destroy_session(handle);
   Rf_error("%s", msg);
 
 }
 
-static inline void watcher_unwind(watcher_cb *wcb) {
+static void watcher_unwind(watcher_cb *wcb) {
 
   if (wcb->paths) {
     for (unsigned int i = 0; i < wcb->event_num; i++) {
@@ -53,20 +53,21 @@ static void exec_later(void *data) {
 static void process_events(fsw_cevent const *const events, const unsigned int event_num, void *data) {
 
   SEXP callback = (SEXP) data;
+  watcher_cb *wcb = NULL;
 
   if (callback != R_NilValue) {
 
-    watcher_cb *wcb = calloc(1, sizeof(watcher_cb));
-    if (!wcb) return;
+    wcb = malloc(sizeof(watcher_cb));
+    if (wcb == NULL) goto fail;
 
     wcb->event_num = event_num;
-    wcb->paths = calloc(event_num, sizeof(char *));
-    if (!wcb->paths) { watcher_unwind(wcb); return; }
     wcb->callback = callback;
+    wcb->paths = calloc(event_num, sizeof(char *));
+    if (wcb->paths == NULL) goto fail;
     for (unsigned int i = 0; i < event_num; i++) {
       size_t slen = strlen(events[i].path) + 1;
       wcb->paths[i] = malloc(sizeof(char) * slen);
-      if (!wcb->paths[i]) { watcher_unwind(wcb); return; }
+      if (wcb->paths[i] == NULL) goto fail;
       memcpy(wcb->paths[i], events[i].path, slen);
     }
     eln2(exec_later, wcb, 0, 0);
@@ -78,6 +79,11 @@ static void process_events(fsw_cevent const *const events, const unsigned int ev
     }
 
   }
+
+  return;
+
+  fail:
+  watcher_unwind(wcb);
 
 }
 
@@ -103,19 +109,20 @@ static void session_finalizer(SEXP xptr) {
 SEXP watcher_create(SEXP path, SEXP callback, SEXP latency) {
 
   const char *watch_path = Rf_translateChar(STRING_ELT(path, 0));
-  const double lat = REAL(latency)[0];
+  const double lat = Rf_asReal(latency);
 
   FSW_HANDLE handle = fsw_init_session(system_default_monitor_type);
   if (handle == NULL)
     watcher_error(handle, "Watcher failed to allocate memory.");
 
-  if (fsw_add_path(handle, watch_path) != FSW_OK)
-    watcher_error(handle, "Watcher path invalid.");
+  /* no need to test return value of fsw_add_path() as it only errors if the
+   * path is a null pointer, and Rf_translateChar() cannot return one
+   */
+  fsw_add_path(handle, watch_path);
 
   if (XLENGTH(path) > 1) {
     for (R_xlen_t i = 1; i < XLENGTH(path); i++) {
-      if (fsw_add_path(handle, Rf_translateChar(STRING_ELT(path, i))) != FSW_OK)
-        watcher_error(handle, "Watcher path invalid.");
+      fsw_add_path(handle, Rf_translateChar(STRING_ELT(path, i)));
     }
   }
 
