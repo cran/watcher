@@ -1,7 +1,7 @@
 Type: Package
 Package: watcher
 Title: Watch the File System for Changes
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(
     person("Charlie", "Gao", , "charlie.gao@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0750-061X")),
@@ -10,8 +10,8 @@ Authors@R: c(
   )
 Description: R binding for 'libfswatch', a file system monitoring library.
     Watch files, or directories recursively, for changes in the
-    background. Log activity, or run an R function every time a change
-    event occurs.
+    background.  Log activity, or call an R function, upon every change
+    event.
 License: MIT + file LICENSE
 URL: https://watcher.r-lib.org, https://github.com/r-lib/watcher
 BugReports: https://github.com/r-lib/watcher/issues
@@ -23,13 +23,13 @@ Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
 Config/usethis/last-upkeep: 2025-04-23
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 SystemRequirements: 'libfswatch', or 'cmake' to compile from package
         sources
 NeedsCompilation: yes
-Packaged: 2025-07-16 07:06:25 UTC; shikokuchuo
+Packaged: 2025-12-01 23:15:06 UTC; cg334
 Author: Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>),
   Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)
 Maintainer: Charlie Gao <charlie.gao@posit.co>
 Repository: CRAN
-Date/Publication: 2025-07-16 09:30:02 UTC
+Date/Publication: 2025-12-01 23:30:02 UTC

@@ -5,7 +5,7 @@
 \alias{watcher-package}
 \title{watcher: Watch the File System for Changes}
 \description{
-R binding for 'libfswatch', a file system monitoring library. Watch files, or directories recursively, for changes in the background. Log activity, or run an R function every time a change event occurs.
+R binding for 'libfswatch', a file system monitoring library. Watch files, or directories recursively, for changes in the background. Log activity, or call an R function, upon every change event.
 }
 \seealso{
 Useful links:
@@ -21,7 +21,7 @@ Useful links:
 
 Other contributors:
 \itemize{
-  \item Posit Software, PBC (03wc8by49) [copyright holder, funder]
+  \item Posit Software, PBC (\href{https://ror.org/03wc8by49}{ROR}) [copyright holder, funder]
 }
 
 }
