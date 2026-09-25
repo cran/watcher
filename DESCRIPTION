@@ -1,7 +1,7 @@
 Type: Package
 Package: watcher
 Title: Watch the File System for Changes
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
     person("Charlie", "Gao", , "charlie.gao@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0750-061X")),
@@ -32,11 +32,11 @@ Encoding: UTF-8
 SystemRequirements: 'libfswatch' (optional, bundled copy compiled
         otherwise)
 NeedsCompilation: yes
-Packaged: 2026-06-22 07:45:09 UTC; cg334
+Packaged: 2026-09-25 13:27:35 UTC; shikokuchuo
 Author: Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>),
   Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>),
   Enrico M. Crisostomo [cph] (libfswatch library),
   Alan Dipert [cph] (libfswatch library)
 Maintainer: Charlie Gao <charlie.gao@posit.co>
 Repository: CRAN
-Date/Publication: 2026-06-22 08:10:02 UTC
+Date/Publication: 2026-09-25 14:00:02 UTC
